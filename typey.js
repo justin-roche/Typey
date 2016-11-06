@@ -359,65 +359,9 @@
         //does NOT check if there are extra properties
         this.hasAll = function(input, schema){
             return this.types[schema].call(this,input); 
-            
         }
     }
 
     T = new Typey();
 
 })()
-
-// var analyzedPostSchema = T.array({
-//     "&": T.object({                     //the hubObject
-//         "hubName": T.String,
-//         "views": T.array({
-//             "&": T.object({            //the view object
-//                 "viewName": T.String, 
-//                 "item": T.object({      //view 
-//                     "date": T.String,
-//                     "data": T.object({
-//                         "*x=10": T.Number,  //the tech and techcount
-//                     })
-//                 })
-//             })
-//         }),
-//     })
-// });
-
-
-//var r = T.hasAll(analyzedTest,'analyzed');
-//console.log(r)
-
-//console.log(T.match(test,'nestedArray'));
-
-
-
-
-    
-
-
-// T.schema('nestedArray',
-//     T.array({
-//             '*': T.array({
-//                 0: 42,
-//                 1: 43
-//             }),
-//             1: T.object({
-//                 name: 'icecream',
-//                 description: T.object({
-//                     awesome: true,
-//                 })
-//             })
-//     })
-// );
-
-
-// T.schema('chartOptions',
-//     T.object({
-//         series: T.Array,
-//         dates: T.Array,
-//         view: T.String,
-//         hub: T.String,
-//     })
-// );
-

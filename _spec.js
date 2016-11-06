@@ -269,8 +269,8 @@ describe('hasAll with complex objects',function(){
         ]
         }
     ];
-    //T.schema('analyzed',analyzedPostSchema);
-    //expect(T.hasAll(analyzedTest,'analyzed')).to.equal(true);
+
+    expect(T.hasAll(analyzedTest,'analyzed')).to.equal(true);
 
     var analyzedTest2 = [
     {
