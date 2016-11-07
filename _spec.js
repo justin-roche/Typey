@@ -1,4 +1,83 @@
 
+var analyzedTest = [
+    {
+        "hubName": "phoenix",
+        "views": [
+        { 
+            "viewName": "javascriptFrameworks", 
+            "item": {
+            "date": "123456",
+            "data": {
+                "angular": 7,
+                "backbone": 5,
+                "react": 6,
+                "ember": 3,
+                "knockout": 2,
+                "aurelia": 1,
+                "meteor": 0,
+                "polymer": 1,
+                "vue": 0,
+                "mercury": 1
+            }
+            }
+        }
+        ]
+        },
+        {
+        "hubName": "new_york",
+        "views": [
+        { "viewName": "javascriptFrameworks", 
+            "item": {
+            "date": "123456",
+            "data": {
+                "angular": 7,
+                "backbone": 5,
+                "react": 6,
+                "ember": 3,
+                "knockout": 2,
+                "aurelia": 1,
+                "meteor": 0,
+                "polymer": 1,
+                "vue": 0,
+                "mercury": 1
+            }
+            }
+        }
+        ]
+        }
+    ];
+    
+    var analyzedTest2 = [
+    {
+        "hubName": "phoenix",
+        "views": [
+        { 
+            "viewName": "javascriptFrameworks", 
+            "item": {
+            "date": "123456",
+            "data": {
+                
+            }
+            }
+        }
+        ]
+        },
+        {
+        "hubName": "new_york",
+        "views": [
+        { "viewName": "javascriptFrameworks", 
+            "item": {
+            "date": "123456",
+            "data": {
+               
+            }
+            }
+        }
+        ]
+        }
+    ];
+
+
 
 
 
@@ -80,6 +159,8 @@ describe('example data production',function(){
 
   });
 
+});
+
   describe('hasAll method',function(){
     it('does duck type checking on arrays',function(){
       T.schema('array',
@@ -90,7 +171,6 @@ describe('example data production',function(){
       
       expect(T.hasAll(['a','b',4],'array')).to.equal(true);
       expect(T.hasAll(['a','b',3],'array')).to.equal(false);
-
     });
 
     it('does duck type checking on objects',function(){
@@ -122,9 +202,20 @@ describe('example data production',function(){
 
   });
 
+  describe('hasAll method with primitive types',function(){
+      it('checks for Arrays',function(){
+          T.schema('array', T.Array); 
+          expect(T.hasAll(["a","b"], 'array')).to.equal(true);
+      });
+      it('checks for Objects',function(){
+          T.schema('object', T.Object); 
+          expect(T.hasAll({}, 'object')).to.equal(true);
+      });
+  });
+
   describe('hasAll method with comparators',function(){
 
-      it('uses no comparator and no number to describe "exactly one" property',function(){
+      it('uses wildcard, no comparator, and no number to describe "exactly one" property',function(){
           T.schema('array',
             T.array({
                     '*': T.String,
@@ -136,7 +227,21 @@ describe('example data production',function(){
           expect(T.hasAll(["a"],'array')).to.equal(true);
       })
 
-      it('uses no comparator and a number to describe "exactly n properties", (e.g. quantity is strict, existence is duck-type)',function(){
+      it('uses wildcard with defined properties to describe "exactly one" property that is defined',function(){
+          T.schema('array',
+            T.array({
+                    '*': 'a',
+                    })
+          );
+
+          expect(T.hasAll(["a","b"], 'array')).to.equal(true);
+          expect(T.hasAll(["a","b","c"],'array')).to.equal(true);
+          expect(T.hasAll(["a"],'array')).to.equal(true);
+          expect(T.hasAll(["b","c"], 'array')).to.equal(false);
+
+      })
+
+      it('uses wildcard, no comparator, and a number to describe "exactly n properties", (e.g. quantity is strict, existence is duck-type)',function(){
           T.schema('array',
             T.array({
                     '&2': T.String,
@@ -195,10 +300,43 @@ describe('example data production',function(){
           expect(T.hasAll(["a"],'array')).to.equal(true);
       });
 
+    
+
 
   });
 
-});
+
+
+
+
+describe('logs object definition path for failed schema properties',function(){
+    it('logs first-level property names',function(){
+      T.schema('array',
+          T.array({
+                  2: 4,
+          })
+      );
+      
+      expect(T.hasAll(['a','b',3],'array')).to.equal(false) 
+      //expect(T.log()).to.equal('type check failed at 2');
+      console.log(T.traceLog());
+    });
+
+    it('logs first-level property names',function(){
+      T.schema('array',
+          T.array({
+             '*': T.array({
+                  2: 4,
+              }),     
+          })
+      );
+      
+      expect(T.hasAll(['a','b',3],'array')).to.equal(false) 
+      //expect(T.traceLog()).to.equal('unmatched named simple predicate "2" at schema "array" > 2 ');
+      console.log(T.traceLog());
+    });
+
+})
 
 describe('hasAll with complex objects',function(){
 
@@ -222,88 +360,11 @@ describe('hasAll with complex objects',function(){
             })
         }));
  
-    var analyzedTest = [
-    {
-        "hubName": "phoenix",
-        "views": [
-        { 
-            "viewName": "javascriptFrameworks", 
-            "item": {
-            "date": "123456",
-            "data": {
-                "angular": 7,
-                "backbone": 5,
-                "react": 6,
-                "ember": 3,
-                "knockout": 2,
-                "aurelia": 1,
-                "meteor": 0,
-                "polymer": 1,
-                "vue": 0,
-                "mercury": 1
-            }
-            }
-        }
-        ]
-        },
-        {
-        "hubName": "new_york",
-        "views": [
-        { "viewName": "javascriptFrameworks", 
-            "item": {
-            "date": "123456",
-            "data": {
-                "angular": 7,
-                "backbone": 5,
-                "react": 6,
-                "ember": 3,
-                "knockout": 2,
-                "aurelia": 1,
-                "meteor": 0,
-                "polymer": 1,
-                "vue": 0,
-                "mercury": 1
-            }
-            }
-        }
-        ]
-        }
-    ];
+    
 
-    expect(T.hasAll(analyzedTest,'analyzed')).to.equal(true);
-
-    var analyzedTest2 = [
-    {
-        "hubName": "phoenix",
-        "views": [
-        { 
-            "viewName": "javascriptFrameworks", 
-            "item": {
-            "date": "123456",
-            "data": {
-                
-            }
-            }
-        }
-        ]
-        },
-        {
-        "hubName": "new_york",
-        "views": [
-        { "viewName": "javascriptFrameworks", 
-            "item": {
-            "date": "123456",
-            "data": {
-               
-            }
-            }
-        }
-        ]
-        }
-    ];
-
+    //expect(T.hasAll(analyzedTest,'analyzed')).to.equal(true);
     expect(T.hasAll(analyzedTest2,'analyzed')).to.equal(false);
-
+    console.log(T.traceLog());
 
   });
 });

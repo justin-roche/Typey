@@ -229,70 +229,101 @@
 
        //====================  PREDICATE PARSING =======================
 
-       this._log = [];
-       this.log = function(propName){
-           this._log.push(propName);
-       }
+       
 
+       trace = {};
+       trace.fail = false;
+       trace.path = [];
+       trace.currentPath = [];
+       buildTrace = function(e){
+           if(e.schema){
+               trace.schema = e.schema; 
+           }
+           if(e.input){
+               trace.input = e.input;
+           }
+           if(e.push){
+               trace.currentPath.push(e.schemaProp); 
+           }
+           if(e.pop){
+               trace.currentPath.pop(e.schemaProp);
+           }
+           if(e.schemaProp){
+               var propName = e.schemaProp;
+               if(e.result === false){
+                   //capture the first failure
+                   if(trace.fail === false){
+                       trace.failedProp = e.schemaProp;
+                       trace.case = e.case; 
+                       trace.fail = true; 
+                       trace.path = trace.currentPath.slice();
+                   }
+                   //capture path to failure as stack unwinds
+                   else if(trace.fail === true){
+                       //do not duplicate
+                   }
+               }
+           }
+       }
+       this.traceLog = function(){
+           return `unmatched ${trace.case} "${trace.failedProp}" at schema "${trace.schema}" > ${trace.path.join(' > ')} \n
+           for object ${trace.input}`;
+       }
+     
         //descent parse a complex predicate
         this.predicateParse = function(schema,input){
+
             var schemaProps = Object.keys(schema);
             var inputKeys = Object.keys(input);
             
             return schemaProps.every(function(propName,index){
+              buildTrace({push: true, schemaProp: propName});
+              var traceEvent = {schemaProp: propName};
               //what is the input value for same key?
               var inputValue = input[propName];
               var schemaValue = schema[propName];
-              //T.log([schemaVal])
-              //wildcard property names
+              var propResult = null;
+
+              //============WILDCARD PROPERTY NAMES
               if(propName[0] === '*' || propName[0] === '&'){
                 
                 var propStrings = propName.match(T.regEx);
                 var count = Number(propStrings[4]) || 1; 
                 var comparatorString = propStrings[3] || "=";
                 var comparator = T.comparators[comparatorString];
-                
-                //if(count){
-                    
-                    var inputMatches = inputKeys.filter(function(inputKey){
-                        return schema[propName].call(this,input[inputKey]); //
-                    });
-                    var result = comparator(inputMatches.length, count);
-                    return result;
-                    // if ( result === true){
-                    //     return true;
-                    // } else {
-                    //     return [propName].concat(result);
-                    // }
-                //} 
-                //     else {
-                //     //if there is no count, 
-                //     var result = inputKeys.some(function(inputKey){
-                //         return schema[propName].call(this,input[inputKey]); //
-                //     });
-                //     if ( result === true){
-                //         return true;
-                //     } else {
-                //         return [propName].concat(result);
-                //     }
-                // }
+
+                buildTrace({comparator: comparator});
+                typeof schemaValue === 'function'? traceEvent.case = 'unnamed complex predicate': 'unnamed simple predicate'
+
+                //count the number of inputs that match the predicate for this schema property
+                var inputMatches = inputKeys.filter(function(inputKey){
+                    if(typeof schemaValue === 'function'){
+                        return schema[propName].call(this,input[inputKey]);
+                    } else {
+                        return input[inputKey] === schemaValue;
+                    } 
+                });
+                propResult = comparator(inputMatches.length, count);
               }
 
-              //unmatched property names
+              //===========SPECIFIED PROPERTY NAMES
               else if(!inputValue){
-                  return false;
-              } else {
-
-                  //matched property names that are constructs
-                  if(typeof schemaValue === 'function'){
-                      return schemaValue.call(this,inputValue); 
-                  } else {
-
-                  //matched property names that are values
-                      return schemaValue === inputValue;
-                  }
+                  traceEvent.case = 'specified input value';
+                  propResult = false;
                   
+              } else {
+                  if(typeof schemaValue === 'function'){
+                      traceEvent.case = 'named complex predicate';
+                      propResult = schemaValue.call(this,inputValue); 
+                  } else {
+                      traceEvent.case = 'named simple predicate';
+                      propResult = schemaValue === inputValue
+                  }
               }
+              traceEvent.result = propResult; 
+              buildTrace(traceEvent);
+              buildTrace({pop: true});
+              return propResult;
             });
         };
 
@@ -358,7 +389,8 @@
 
         //does NOT check if there are extra properties
         this.hasAll = function(input, schema){
-            return this.types[schema].call(this,input); 
+            buildTrace({input: input, schema: schema});
+            return this.types[schema].call(this,input);            
         }
     }
 
