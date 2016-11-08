@@ -77,10 +77,6 @@ var analyzedTest = [
         }
     ];
 
-
-
-
-
 describe('example data production',function(){
   describe('example array creation',function(){
     it('creates  with index repeat directives applied to literal values',function(){
@@ -253,7 +249,7 @@ describe('example data production',function(){
           expect(T.hasAll(["a"],'array')).to.equal(false);
       });
 
-      it('uses > on simple arrays',function(){
+      it('uses > on simple arrays to describe "more than n" properties',function(){
           T.schema('array',
             T.array({
                     '&>2': T.String,
@@ -299,15 +295,7 @@ describe('example data production',function(){
           expect(T.hasAll(["a","b"],'array')).to.equal(true);
           expect(T.hasAll(["a"],'array')).to.equal(true);
       });
-
-    
-
-
   });
-
-
-
-
 
 describe('logs object definition path for failed schema properties',function(){
     it('logs first-level property names',function(){

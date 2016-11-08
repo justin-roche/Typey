@@ -3,6 +3,7 @@
     
     var Typey = function(){
 
+
         //the types repository
         this.types = { };
 
@@ -11,7 +12,19 @@
             this.types[name] = newpredicate;
         }
 
+        //====================  PRIMITIVE DEFINITIONS =======================
+
         //simple predicates are upper case and do not accept subpredicates
+        this.Null = function(target){
+            return target === null;
+        }
+        this.Null.type = 'null';
+        this.Null.generator = function*(){
+            while(true){
+                yield null;
+            }
+        };
+        
         this.Number = function(target){
             return typeof target === 'number';
         }
@@ -227,9 +240,8 @@
 
         this.regEx = new RegExp(/([\&*])?(\$)?(\>\=|\<\=|\>|\<)?(\d+)?/); //order matters among the comparators
 
-       //====================  PREDICATE PARSING =======================
-
-       
+     
+       //====================  STACK TRACE =======================
 
        trace = {};
        trace.fail = false;
@@ -242,9 +254,11 @@
            if(e.input){
                trace.input = e.input;
            }
+           //push a new branch
            if(e.push){
                trace.currentPath.push(e.schemaProp); 
            }
+           //remove an old branch from the stack
            if(e.pop){
                trace.currentPath.pop(e.schemaProp);
            }
@@ -270,6 +284,9 @@
            for object ${trace.input}`;
        }
      
+         //====================  PREDICATE PARSING =======================
+
+
         //descent parse a complex predicate
         this.predicateParse = function(schema,input){
 
@@ -383,14 +400,21 @@
 
         }
 
-        this.deepMatch = function(type, target){
-            //return (check.all(check.map(target,this.types[type]))) === true;
+        //=======MIDDLEWARE
+        this.$hasAll = function(schema){
+            return function(req,res, next){
+                if (T.hasAll(req,schema)){
+                    next();
+                } else {
+                    throw new Error(T.traceLog());
+                }
+            }
         }
 
         //does NOT check if there are extra properties
         this.hasAll = function(input, schema){
-            buildTrace({input: input, schema: schema});
-            return this.types[schema].call(this,input);            
+                buildTrace({input: input, schema: schema});
+                return this.types[schema].call(this,input); 
         }
     }
 
